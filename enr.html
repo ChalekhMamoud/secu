@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application d'Alerte</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 18px;
+            background-color: #4CAF50; /* Boutons verts */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .video-container {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        video, img {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        #clearBtn {
+            background-color: #f44336;
+            margin-top: 10px;
+        }
+        .camera-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        #captureBtn {
+            margin-bottom: 20px;
+        }
+        #closeBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #333;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        #recordingStatus {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+        .modify-btn, .delete-btn, .download-btn {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 10px;
+            background-color: #f0ad4e;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+        }
+        .delete-btn {
+            background-color: #d9534f;
+        }
+        .download-btn {
+            background-color: #5bc0de;
+        }
+        #photo-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /* Ajout des styles pour les boutons vidéo */
+        .video-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .start-video, .stop-video, .download-video {
+            width: 30%;
+            padding: 10px;
+            color: white;
+            font-size: 14px;
+            border-radius: 4px;
+            border: none;
+        }
+        .start-video {
+            background-color: #007bff; /* Bleu */
+        }
+        .stop-video {
+            background-color: #dc3545; /* Rouge */
+        }
+        .download-video {
+            background-color: #28a745; /* Vert */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Signaler un Incident</h1>
+    <button id="closeBtn">✖</button>
+
+    <div class="container">
+        <!-- Boutons pour enregistrer une vidéo -->
+        <button class="button" id="record-video">Enregistrer une Vidéo</button>
+
+        <!-- Section boutons vidéo -->
+        <div class="video-buttons">
+            <button id="start-video" class="start-video">Enregistrer Vidéo</button>
+            <button id="stop-video" class="stop-video" style="display:none;">Arrêter</button>
+            <button id="download-video" class="download-video" style="display:none;">Télécharger Vidéo</button>
+        </div>
+
+        <div class="camera-container">
+            <video id="video" width="100%" height="auto" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+        </div>
+
+        <!-- Affichage des boutons en bas -->
+        <div id="photo-actions" style="display: flex; justify-content: center; width: 100%;">
+            <button class="modify-btn" id="modify-photo" style="display: none;">Modifier</button>
+            <button class="delete-btn" id="delete-photo" style="display: none;">Supprimer</button>
+            <button class="download-btn" id="download-photo" style="display: none;">Télécharger</button>
+        </div>
+
+        <!-- Bouton pour supprimer l'image ou la vidéo -->
+        <button id="clearBtn" class="button" style="display: none;">Tout Supprimer</button>
+        <div id="recordingStatus" style="display: none;">Enregistrement en cours...</div>
+    </div>
+
+<script>
+    // Initialisation des éléments DOM
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const clearBtn = document.getElementById('clearBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const recordingStatus = document.getElementById('recordingStatus');
+    const startVideoBtn = document.getElementById('start-video');
+    const stopVideoBtn = document.getElementById('stop-video');
+    const downloadVideoBtn = document.getElementById('download-video');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    // Demander l'accès à la caméra
+    function startVideo() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                alert("Impossible d'accéder à la caméra : " + err.message);
+            });
+    }
+
+    // Fonction pour démarrer l'enregistrement vidéo
+    startVideoBtn.addEventListener('click', () => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(function (stream) {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = function (event) {
+                    recordedChunks.push(event.data);
+                };
+                mediaRecorder.onstop = function () {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    downloadVideoBtn.style.display = 'inline-block'; // Afficher le bouton de téléchargement
+                    recordedChunks = []; // Réinitialiser les chunks
+                };
+                mediaRecorder.start();
+                startVideoBtn.style.display = 'none'; // Masquer le bouton "Enregistrer Vidéo"
+                stopVideoBtn.style.display = 'inline-block'; // Afficher le bouton "Arrêter"
+                recordingStatus.style.display = 'block'; // Afficher le statut d'enregistrement
+            })
+            .catch(function (error) {
+                alert("Impossible d'accéder à la caméra et au microphone : " + error.message);
+            });
+    });
+
+    // Fonction pour arrêter l'enregistrement vidéo
+    stopVideoBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            stopVideoBtn.style.display = 'none'; // Masquer le bouton "Arrêter"
+            startVideoBtn.style.display = 'inline-block'; // Réafficher le bouton "Enregistrer Vidéo"
+            recordingStatus.style.display = 'none'; // Masquer le statut d'enregistrement
+        }
+    });
+
+    // Fonction pour télécharger la vidéo
+    downloadVideoBtn.addEventListener('click', () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'video-incident.webm'; // Nom du fichier vidéo
+        link.click();
+    });
+
+    // Démarrer le flux vidéo à l'ouverture de la page
+    window.onload = function() {
+        startVideo();
+    };
+
+    // Fermeture de la fenêtre
+    closeBtn.addEventListener('click', function () {
+        window.close();
+    });
+</script>
+
+</body>
+</html>

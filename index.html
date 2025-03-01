@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Application d'Alerte</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				font-family: Arial, sans-serif;
+				background-color: white;
+				color: black;
+				height: 100vh;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-direction: column;
+			}
+			video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+			.container {
+				width: 100%;
+				max-width: 600px;
+				padding: 20px;
+				background-color: white;
+				border-radius: 8px;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+				margin-bottom: 20px;
+				position: relative;
+			}
+			h1 {
+				text-align: center;
+				color: #333;
+				font-size: 24px;
+				margin-bottom: 20px;
+			}
+			.button {
+				display: block;
+				width: 100%;
+				padding: 15px;
+				margin: 10px 0;
+				text-align: center;
+				font-size: 18px;
+				background-color: #4caf50; /* Boutons verts */
+				color: white;
+				border: none;
+				border-radius: 8px;
+				cursor: pointer;
+				transition: background-color 0.3s;
+			}
+			.button:hover {
+				background-color: #45a049;
+			}
+			.video-container {
+				margin: 20px 0;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				width: 100%;
+			}
+			video,
+			img {
+				width: 100%;
+				height: auto;
+				max-height: 80vh;
+				object-fit: contain;
+				border-radius: 8px;
+				border: 1px solid #ddd;
+					}
+			#clearBtn {
+				background-color: #f44336;
+				margin-top: 10px;
+			}
+			.camera-container {
+				margin-top: 20px;
+				width: 100%;
+			}
+			#captureBtn {
+				margin-bottom: 20px;
+			}
+			#closeBtn {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+				font-size: 24px;
+				color: #333;
+				background: none;
+				border: none;
+				cursor: pointer;
+			}
+			#recordingStatus {
+				margin-top: 10px;
+				font-weight: bold;
+				color: red;
+			}
+			.modify-btn,
+			.delete-btn,
+			.download-btn,
+			.validate-btn {
+				margin-top: 10px;
+				display: inline-block;
+				padding: 10px;
+				background-color: #f0ad4e;
+				color: white;
+				font-size: 14px;
+				cursor: pointer;
+				border-radius: 4px;
+				border: none;
+			}
+			.delete-btn {
+				background-color: #d9534f;
+			}
+			.download-btn {
+				background-color: #5bc0de;
+			}
+			.validate-btn {
+				background-color: #28a745; /* Couleur verte pour valider */
+			}
+			#photo-actions {
+				margin-top: 20px;
+				display: flex;
+				justify-content: space-between; /* Espacement entre les boutons */
+				width: 100%;
+				display: none; /* Masqué par défaut */
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Signaler un Incident</h1>
+		<button id="closeBtn">✖</button>
+
+		<div class="container">
+			<!-- Choix pour prendre une photo, enregistrer une vidéo ou audio -->
+			<div id="actionChoice">
+				<button class="button" id="capturePhotoBtn">Capturer une Photo</button>
+				<button class="button" id="recordVideoBtn">
+					Enregistrer une Vidéo
+				</button>
+				<button class="button" id="recordAudioBtn">Enregistrer un Audio</button>
+			</div>
+
+			<!-- Affichage de la vidéo et de l'image -->
+			<div class="camera-container">
+				<video id="video" width="100%" height="auto" autoplay></video>
+				<canvas id="canvas" style="display: none"></canvas>
+				<img id="photo" src="" alt="Photo Capturée" style="display: none" />
+			</div>
+
+			<!-- Affichage des boutons en bas -->
+			<div id="photo-actions">
+				<button class="download-btn" id="download-photo" style="display: none">
+					Télécharger la Photo
+				</button>
+				<button class="validate-btn" id="validate-btn" style="display: none">
+					Valider
+				</button>
+			</div>
+
+			<!-- Bouton pour supprimer l'image ou la vidéo -->
+			<button id="clearBtn" class="button" style="display: none">
+				Tout Supprimer
+			</button>
+			<div id="recordingStatus" style="display: none">
+				Enregistrement en cours...
+			</div>
+		</div>
+
+		<script>
+			// Initialisation des éléments DOM
+			const video = document.getElementById('video');
+			const canvas = document.getElementById('canvas');
+			const photo = document.getElementById('photo');
+			const clearBtn = document.getElementById('clearBtn');
+			const closeBtn = document.getElementById('closeBtn');
+			const recordingStatus = document.getElementById('recordingStatus');
+			const downloadPhotoBtn = document.getElementById('download-photo');
+			const validateBtn = document.getElementById('validate-btn');
+			const photoActions = document.getElementById('photo-actions');
+			const actionChoice = document.getElementById('actionChoice');
+			const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+			const recordVideoBtn = document.getElementById('recordVideoBtn');
+			const recordAudioBtn = document.getElementById('recordAudioBtn');
+
+			let mediaRecorder;
+			let recordedChunks = [];
+
+			// Demander l'accès à la caméra arrière
+			function startVideo() {
+				// Utiliser 'video: { facingMode: "environment" }' pour activer la caméra arrière
+				navigator.mediaDevices.getUserMedia({
+					video: { facingMode: "environment" },
+				})
+					.then((stream) => {
+						video.srcObject = stream;
+					})
+					.catch((err) => {
+						alert("Impossible d'accéder à la caméra : " + err.message);
+					});
+			}
+
+			// Prendre une photo
+			capturePhotoBtn.addEventListener('click', (event) => {
+				event.preventDefault();
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+				const ctx = canvas.getContext('2d');
+				ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+				const dataUrl = canvas.toDataURL('image/png');
+				photo.src = dataUrl;
+				photo.style.display = 'block';
+				clearBtn.style.display = 'block';
+				photoActions.style.display = 'flex';
+				downloadPhotoBtn.style.display = 'inline-block';
+				validateBtn.style.display = 'inline-block'; // Afficher le bouton "Valider"
+			});
+
+			// Enregistrer une vidéo
+			recordVideoBtn.addEventListener('click', (event) => {
+				event.preventDefault();
+				startRecordingVideo();
+				photoActions.style.display = 'flex'; 
+				clearBtn.style.display = 'block';  
+				validateBtn.style.display = 'inline-block'; // Afficher le bouton "Valider" après l'enregistrement de la vidéo
+			});
+
+			// Enregistrer un audio
+			recordAudioBtn.addEventListener('click', (event) => {
+				event.preventDefault();
+				startRecordingAudio();
+				photoActions.style.display = 'flex'; 
+				clearBtn.style.display = 'block';  
+				validateBtn.style.display = 'inline-block'; // Afficher le bouton "Valider" après l'enregistrement de l'audio
+			});
+
+			// Démarrer l'enregistrement vidéo
+			function startRecordingVideo() {
+				navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+					.then(function (stream) {
+						mediaRecorder = new MediaRecorder(stream);
+						mediaRecorder.ondataavailable = function (event) {
+							recordedChunks.push(event.data);
+						};
+						mediaRecorder.onstop = function () {
+							const blob = new Blob(recordedChunks, { type: 'video/webm' });
+							alert('Vidéo enregistrée. Vous pouvez l\'envoyer aux autorités.');
+							downloadVideo(blob); 
+						};
+						mediaRecorder.start();
+						recordingStatus.style.display = 'block';  
+					})
+					.catch(function (error) {
+						alert("Impossible d'accéder à la caméra et au microphone : " + error.message);
+					});
+			}
+
+			// Démarrer l'enregistrement audio
+			function startRecordingAudio() {
+				navigator.mediaDevices.getUserMedia({ audio: true })
+					.then(function (stream) {
+						mediaRecorder = new MediaRecorder(stream);
+						mediaRecorder.ondataavailable = function (event) {
+							recordedChunks.push(event.data);
+						};
+						mediaRecorder.onstop = function () {
+							const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+							alert('Audio enregistré. Vous pouvez l\'envoyer aux autorités.');
+							downloadAudio(blob);
+						};
+						mediaRecorder.start();
+						recordingStatus.style.display = 'block';  
+					})
+					.catch(function (error) {
+						alert("Impossible d'accéder au microphone : " + error.message);
+					});
+			}
+
+			// Télécharger la vidéo
+			function downloadVideo(blob) {
+				const link = document.createElement('a');
+				const url = URL.createObjectURL(blob);
+				link.href = url;
+				link.download = 'video-incident.webm'; 
+				link.click();
+			}
+
+			// Télécharger l'audio
+			function downloadAudio(blob) {
+				const link = document.createElement('a');
+				const url = URL.createObjectURL(blob);
+				link.href = url;
+				link.download = 'audio-incident.wav'; 
+				link.click();
+			}
+
+			// Télécharger la photo
+			downloadPhotoBtn.addEventListener('click', () => {
+				const link = document.createElement('a');
+				link.href = photo.src;
+				link.download = 'photo-incident.png'; 
+				link.click();
+			});
+
+			// Action de valider l'incident (enregistrer ou envoyer)
+			validateBtn.addEventListener('click', () => {
+				alert('Incident validé et prêt à être envoyé aux autorités.');
+				// Vous pouvez ajouter ici des actions pour envoyer les données vers un serveur si nécessaire.
+			});
+
+			// Supprimer l'image ou vidéo
+			clearBtn.addEventListener('click', () => {
+				photo.style.display = 'none';
+				clearBtn.style.display = 'none';
+				photoActions.style.display = 'none';
+				actionChoice.style.display = 'block'; 
+				recordingStatus.style.display = 'none'; 
+			});
+
+			// Démarrage des flux vidéo au chargement de la page
+			window.onload = function() {
+				startVideo();
+			};
+
+			// Fermeture de la fenêtre
+			closeBtn.addEventListener('click', function () {
+				window.close();
+			});
+			// Demander l'accès à la caméra arrière
+function startVideo() {
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" }, // Utiliser la caméra arrière
+  })
+    .then((stream) => {
+      // Affecter le flux vidéo à l'élément vidéo
+      video.srcObject = stream;
+      video.play(); // Assurez-vous que la vidéo commence à jouer dès que le flux est prêt
+    })
+    .catch((err) => {
+      alert("Impossible d'accéder à la caméra : " + err.message);
+    });
+}
+
+// Prendre une photo et afficher l'image capturée
+capturePhotoBtn.addEventListener('click', (event) => {
+  event.preventDefault();
+  
+  // Définir la taille du canvas pour correspondre à celle du flux vidéo
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  // Dessiner l'image de la vidéo sur le canvas
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Convertir le canvas en URL de données et l'afficher comme une image
+  const dataUrl = canvas.toDataURL('image/png');
+  photo.src = dataUrl;
+  photo.style.display = 'block'; // Afficher l'image capturée
+  clearBtn.style.display = 'block'; // Afficher le bouton pour supprimer
+  photoActions.style.display = 'flex'; // Afficher les boutons pour les actions de l'image
+  downloadPhotoBtn.style.display = 'inline-block'; // Afficher le bouton pour télécharger la photo
+  validateBtn.style.display = 'inline-block'; // Afficher le bouton de validation
+});
+
+		</script>
+		
+	</body>
+</html>

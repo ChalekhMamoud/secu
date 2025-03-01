@@ -1,0 +1,221 @@
+/* Reset de base pour enlever les marges et bordures par défaut */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Corps de la page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    /* Couleur de fond douce pour réduire la fatigue visuelle */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    color: #333;
+    /* Texte sombre pour contraster avec le fond clair */
+}
+
+/* Conteneur principal de l'application */
+.container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Titre principal */
+h1 {
+    font-size: 28px;
+    color: #007bff;
+    /* Couleur bleue pour un accent */
+    margin-bottom: 30px;
+}
+
+/* Styles pour les sections de formulaire */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.form-section label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #444;
+    /* Texte légèrement plus clair que le fond */
+}
+
+/* Champs de saisie (select, input) */
+.form-section select,
+.form-section input {
+    padding: 12px;
+    font-size: 18px;
+    border: 2px solid #007bff;
+    /* Bordure bleue claire */
+    border-radius: 8px;
+    margin-top: 8px;
+    background-color: #f9f9f9;
+    /* Fond gris clair */
+    color: #333;
+    transition: border-color 0.3s ease;
+}
+
+/* Effet au focus (lorsque l'utilisateur clique sur le champ) */
+.form-section select:focus,
+.form-section input:focus {
+    border-color: #0056b3;
+    /* Bordure bleue plus foncée pour indiquer l'interaction */
+    outline: none;
+}
+
+/* Boutons généraux */
+.button {
+    background-color: #007bff;
+    color: white;
+    padding: 16px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 15px;
+}
+
+.button:hover {
+    background-color: #0056b3;
+    /* Changement de couleur lors du survol */
+}
+
+/* Bouton désactivé (lorsqu'il n'est pas actif) */
+.button-disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Boutons de prise de photo et vidéo */
+.photo-video-buttons button {
+    background-color: #28a745;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    width: 48%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.photo-video-buttons button:hover {
+    background-color: #218838;
+}
+
+/* Espacement entre les boutons photo et vidéo */
+.photo-video-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+/* Bouton de géolocalisation */
+.map-button {
+    background-color: #ffc107;
+    color: white;
+    padding: 16px;
+    font-size: 18px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 15px;
+}
+
+.map-button:hover {
+    background-color: #e0a800;
+}
+
+/* Responsive : adapter les éléments sur des écrans plus petits */
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .form-section select,
+    .form-section input {
+        font-size: 16px;
+        padding: 10px;
+    }
+
+    .button,
+    .map-button,
+    .photo-video-buttons button {
+        font-size: 18px;
+        padding: 14px;
+    }
+
+    .photo-video-buttons {
+        flex-direction: column;
+    }
+
+    .photo-video-buttons button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+/* Ajoute un espace entre les boutons verts (photo/vidéo) et le bouton bleu (alerte) */
+.photo-video-buttons button {
+    background-color: #28a745;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    width: 48%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.photo-video-buttons button:hover {
+    background-color: #218838;
+}
+
+/* Espace entre les boutons photo et vidéo */
+.photo-video-buttons {
+    display: flex;
+    justify-content: space-between;
+   
+    /* Espace entre les boutons photo/vidéo et le bouton d'alerte */
+}
+
+/* Modification des autres boutons pour ajouter de l'espace */
+.button {
+    background-color: #007bff;
+    color: white;
+    padding: 16px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 15px;
+    /* Ajout d'une marge pour séparer le bouton d'alerte des autres éléments */
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
